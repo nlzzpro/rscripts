@@ -1,0 +1,161 @@
+--not protected by @nlzz :)
+
+local replicated_storage = game:GetService("ReplicatedStorage");
+local players = game:GetService("Players");
+local local_player = players.LocalPlayer;
+local remotes = replicated_storage:WaitForChild("Remotes");
+
+local leaderstats = local_player:WaitForChild("leaderstats");
+local cash = leaderstats:WaitForChild("Cash");
+local rebirths = leaderstats:WaitForChild("Rebirths");
+
+local upgrades_data = { -- brainrots/phonk data base stuff +rep
+    ["Garage Studio"] = {cost = 10, growth = 1.15, req_rebirth = 0};
+    ["Aura Headphones"] = {cost = 25, growth = 1.15, req_rebirth = 0};
+    ["Bass Boost"] = {cost = 100, growth = 1.15, req_rebirth = 0};
+    ["Volume Slider"] = {cost = 500, growth = 1.15, req_rebirth = 0};
+    ["Phonk Speaker"] = {cost = 2500, growth = 1.15, req_rebirth = 0};
+    ["Boombox"] = {cost = 15000, growth = 1.15, req_rebirth = 1};
+    ["EQ Boost"] = {cost = 65000, growth = 1.15, req_rebirth = 2};
+    ["Track Speeder"] = {cost = 420000, growth = 1.15, req_rebirth = 3};
+    ["Drift Phonk"] = {cost = 840000, growth = 1.15, req_rebirth = 5};
+    ["Montagem Remix"] = {cost = 3500000, growth = 1.15, req_rebirth = 7};
+    ["Reverb Speakers"] = {cost = 14000000, growth = 1.15, req_rebirth = 9};
+    ["Bass Distortion"] = {cost = 90000000, growth = 1.15, req_rebirth = 11};
+    ["Volume Overdrive"] = {cost = 800000000, growth = 1.15, req_rebirth = 14};
+    ["Aura Boost"] = {cost = 8400000000, growth = 1.15, req_rebirth = 18};
+    ["Cursed Remix"] = {cost = 42000000000, growth = 1.15, req_rebirth = 22};
+    ["Void Boombox"] = {cost = 780000000000, growth = 1.15, req_rebirth = 26};
+    ["Earthquake Bass"] = {cost = 10000000000000, growth = 1.15, req_rebirth = 30};
+    ["DJ Studio"] = {cost = 35000000000000, growth = 1.15, req_rebirth = 34};
+    ["Universe Boost"] = {cost = 55000000000000, growth = 1.15, req_rebirth = 38};
+    ["Phonkmaxxing"] = {cost = 1000000000000000, growth = 1.12, req_rebirth = 42};
+    ["Phonk Clicker"] = {cost = 2500000000000000, growth = 1.15, req_rebirth = 46};
+    ["Galaxy Boombox"] = {cost = 1.3e16, growth = 1.15, req_rebirth = 50};
+    ["Neon Kick"] = {cost = 5.68e17, growth = 1.15, req_rebirth = 55};
+    ["Subwoofer Array"] = {cost = 2.43e19, growth = 1.15, req_rebirth = 60};
+    ["Night Drive Mix"] = {cost = 1.04e21, growth = 1.15, req_rebirth = 65};
+    ["808 Overcharger"] = {cost = 4.46e22, growth = 1.15, req_rebirth = 70};
+    ["Street Drift Deck"] = {cost = 1.91e24, growth = 1.15, req_rebirth = 75};
+    ["Midnight Frequency"] = {cost = 8.34e25, growth = 1.15, req_rebirth = 80};
+    ["Chrome Bassline"] = {cost = 3.92e27, growth = 1.15, req_rebirth = 85};
+    ["Shadow Club"] = {cost = 1.84e29, growth = 1.15, req_rebirth = 90};
+    ["Turbo Phonk Engine"] = {cost = 8.67e30, growth = 1.15, req_rebirth = 95};
+    ["Neon City Studio"] = {cost = 4.08e32, growth = 1.15, req_rebirth = 100};
+    ["Hyperwave Headset"] = {cost = 1.92e34, growth = 1.15, req_rebirth = 105};
+    ["Bass Reactor"] = {cost = 9.18e35, growth = 1.15, req_rebirth = 110};
+    ["Drift Dimension"] = {cost = 4.73e37, growth = 1.15, req_rebirth = 115};
+    ["Overdrive DJ Booth"] = {cost = 2.44e39, growth = 1.15, req_rebirth = 120};
+    ["Quantum Speakers"] = {cost = 1.26e41, growth = 1.15, req_rebirth = 125};
+    ["Voidwave Remix"] = {cost = 6.48e42, growth = 1.15, req_rebirth = 130};
+    ["Gravity Bass"] = {cost = 3.34e44, growth = 1.15, req_rebirth = 135};
+    ["Cyber Phonk Lab"] = {cost = 1.75e46, growth = 1.15, req_rebirth = 140};
+    ["Solar Subwoofer"] = {cost = 9.88e47, growth = 1.15, req_rebirth = 145};
+    ["Eclipse Mix"] = {cost = 5.57e49, growth = 1.15, req_rebirth = 150};
+    ["Nebula Headphones"] = {cost = 3.14e51, growth = 1.15, req_rebirth = 155};
+    ["Supernova Bass"] = {cost = 1.77e53, growth = 1.15, req_rebirth = 160};
+    ["Astral Studio"] = {cost = 9.99e54, growth = 1.15, req_rebirth = 165};
+    ["Cosmic Drift"] = {cost = 5.73e56, growth = 1.15, req_rebirth = 170};
+    ["Blackhole Boombox"] = {cost = 3.53e58, growth = 1.15, req_rebirth = 175};
+    ["Celestial Equalizer"] = {cost = 2.18e60, growth = 1.15, req_rebirth = 180};
+    ["Hypernova Club"] = {cost = 1.34e62, growth = 1.15, req_rebirth = 185};
+    ["Omniverse Remix"] = {cost = 8.26e63, growth = 1.15, req_rebirth = 190};
+    ["Reality Shaker"] = {cost = 5.09e65, growth = 1.15, req_rebirth = 195};
+    ["Phonk Singularity"] = {cost = 3.14e67, growth = 1.15, req_rebirth = 200};
+};
+
+local last_print_time = 0;
+
+local function get_upgrade_count(upgrade_name)
+    local folder = replicated_storage:FindFirstChild("UpgradeData");
+    if folder then
+        local data = folder:FindFirstChild(upgrade_name);
+        if data then
+            return data:GetAttribute("Count") or 0;
+        end;
+    end;
+    return 0;
+end;
+
+local function get_current_cost(upgrade_name)
+    local data = upgrades_data[upgrade_name];
+    if not data then return math.huge; end;
+    local count = get_upgrade_count(upgrade_name);
+    return data.cost * (data.growth ^ count);
+end;
+
+local function get_target_upgrade()
+    local current_rebirths = rebirths.Value;
+    local best_upgrade = nil;
+    local best_diff = math.huge;
+    
+    for name, data in pairs(upgrades_data) do
+        local diff = math.abs(data.req_rebirth - current_rebirths);
+        if diff < best_diff then
+            best_diff = diff;
+            best_upgrade = name;
+        end;
+    end;
+    
+    return best_upgrade;
+end;
+
+local function try_buy_upgrade()
+    local target = get_target_upgrade();
+    if not target then return; end;
+    
+    local data = upgrades_data[target];
+    local current_cash = cash.Value;
+    local cost = get_current_cost(target);
+    
+    if current_cash >= cost then
+        local success = remotes.BuyUpgrade:InvokeServer(target, 1);
+        if success then
+            local current_time = tick();
+            if current_time - last_print_time >= 2 then
+                print("bought: " .. target .. " [ cost: " .. cost .. " ] rebirths: " .. rebirths.Value .. " [ cash left: " .. cash.Value);
+                last_print_time = current_time;
+            end;
+        end;
+    else
+        local current_time = tick();
+        if current_time - last_print_time >= 2 then
+            print("cant afford " .. target .. " [ need: " .. cost .. " ] Have: " .. current_cash .. " [ Rebirths: " .. rebirths.Value);
+            last_print_time = current_time;
+        end;
+    end;
+end;
+
+local function auto_rebirth()
+    local rebirth_remote = remotes:FindFirstChild("Rebirth");
+    if rebirth_remote then
+        local main_gui = local_player.PlayerGui:FindFirstChild("Main");
+        if main_gui then
+            local buttons_activated = main_gui:FindFirstChild("ButtonsActivated");
+            if buttons_activated then
+                local result = rebirth_remote:InvokeServer(buttons_activated);
+                if result and result[1] == true then
+                    local current_time = tick();
+                    if current_time - last_print_time >= 2 then
+                        print("rebirthed new rebirth value: " .. rebirths.Value);
+                        last_print_time = current_time;
+                    end;
+                end;
+            end;
+        end;
+    end;
+end;
+
+while task.wait() do -- while true do task.wait() end loop
+    task.spawn(function()
+        remotes.ClickBrainrot:FireServer(1);
+    end);
+    
+    task.spawn(function()
+        try_buy_upgrade();
+    end);
+    
+    task.spawn(function()
+        auto_rebirth();
+    end);
+end;
